@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.20)
 project(rviz_visual_tools)
 
 # Default to C++17
@@ -40,7 +40,21 @@ find_package(rviz_common REQUIRED)
 find_package(rviz_rendering REQUIRED)
 find_package(rviz_default_plugins REQUIRED)
 
-find_package(Qt5 REQUIRED COMPONENTS Widgets)
+
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Test Widgets)
+
+if(Qt${QT_VERSION_MAJOR} STREQUAL "Qt6")
+	find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Test Widgets Core5Compat)
+	if(${QT_VERSION} VERSION_LESS 5.15.0)
+  		function(qt_wrap_cpp out)
+    			qt5_wrap_cpp(_sources ${ARGN})
+    			set("${out}" ${_sources} PARENT_SCOPE)
+  		endfunction()
+	endif()
+elseif()#Qt5
+	find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Test Widgets)
+endif()
+
 
 ## Qt5 boilerplate options from http://doc.qt.io/qt-5/cmake-manual.html
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -85,6 +99,7 @@ ament_target_dependencies(${PROJECT_NAME}_gui PUBLIC
   rviz_ogre_vendor
 )
 target_link_libraries(${PROJECT_NAME}_gui PUBLIC Qt5::Widgets)
+
 
 # prevent pluginlib from using boost
 target_compile_definitions(${PROJECT_NAME}_gui PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
